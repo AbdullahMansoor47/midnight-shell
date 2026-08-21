@@ -4,9 +4,9 @@
 
 <div align=center>
 
-![GitHub last commit](https://img.shields.io/github/last-commit/dim-ghub/midnight-shell?style=for-the-badge&labelColor=101418&color=9ccbfb)
-![GitHub Repo stars](https://img.shields.io/github/stars/dim-ghub/midnight-shell?style=for-the-badge&labelColor=101418&color=b9c8da)
-![GitHub repo size](https://img.shields.io/github/repo-size/dim-ghub/midnight-shell?style=for-the-badge&labelColor=101418&color=d3bfe6)
+![GitHub last commit](https://img.shields.io/github/last-commit/AbdullahMansoor47/midnight-shell?style=for-the-badge&labelColor=101418&color=9ccbfb)
+![GitHub Repo stars](https://img.shields.io/github/stars/AbdullahMansoor47/midnight-shell?style=for-the-badge&labelColor=101418&color=b9c8da)
+![GitHub repo size](https://img.shields.io/github/repo-size/AbdullahMansoor47/midnight-shell?style=for-the-badge&labelColor=101418&color=d3bfe6)
 [![Discord invite](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscordapp.com%2Fapi%2Finvites%2FBGDCFCmMBk%3Fwith_counts%3Dtrue&query=approximate_member_count&style=for-the-badge&logo=discord&logoColor=ffffff&label=discord&labelColor=101418&color=96f1f1&link=https%3A%2F%2Fdiscord.gg%2FBGDCFCmMBk)](https://discord.gg/BGDCFCmMBk)
 
 </div>
@@ -24,7 +24,6 @@ This fork adds the following features on top of the official shell:
 - **Wallpapers**: GIF/video support with auto-pause, plus Wallhaven integration.
 - **Bad Apple Easter Egg**: A custom shader effect that plays Bad Apple directly through the shell's UI material by masking the background and preserving the shell's native translucent blur and shadow effects.
 - **Games**: Playable Chrome Dino runner embedded in the notification dock.
-- **Dashboard**: Developer console terminal tab with history and autocomplete.
 - **Bar**: MacOS-style app dock, Material workspace icons, DND toggle, and a live drag-and-drop components editor.
 - **Desktop**: Floating lyrics, Shimeji pets, dynamic wallpaper recoloring, and Bezel Mode.
 - **Lock Screen**: Configurable auto-lock on startup (`lockOnStartup`), redesigned profile and clock layout, and improved forecast UI.
@@ -34,7 +33,7 @@ This fork adds the following features on top of the official shell:
 
 > [!NOTE]
 > This repository is a **FORK**, and can be out of date or have missing features from the [main repo](https://github.com/caelestia-dots/caelestia).
-> This fork is available at [dim-ghub/midnight-shell](https://github.com/dim-ghub/midnight-shell).
+> This fork is available at [AbdullahMansoor47/midnight-shell](https://github.com/AbdullahMansoor47/midnight-shell).
 
 ### Arch Linux / Manual (this fork)
 
@@ -75,7 +74,7 @@ Install `[pkgit](https://git.symlinx.net/pkgit)` (also available on the AUR as `
 Then you can simply install the shell directly from GitHub without cloning it:
 
 ```sh
-pkgit -i https://github.com/dim-ghub/midnight-shell
+pkgit -i https://github.com/AbdullahMansoor47/midnight-shell
 ```
 
 Using `AUR`
@@ -95,7 +94,7 @@ Then simply build and install using `cmake`:
 
 ```sh
 cd $XDG_CONFIG_HOME/quickshell
-git clone https://github.com/dim-ghub/midnight-shell.git caelestia
+git clone https://github.com/AbdullahMansoor47/midnight-shell.git caelestia
 
 cd caelestia
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/
@@ -126,7 +125,7 @@ sudo cmake --install build
 You can run the shell directly via `nix run`:
 
 ```sh
-nix run github:dim-ghub/midnight-shell
+nix run github:AbdullahMansoor47/midnight-shell
 ```
 
 Or add it to your system configuration:
@@ -137,7 +136,7 @@ Or add it to your system configuration:
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     midnight-shell = {
-      url = "github:dim-ghub/midnight-shell";
+      url = "github:AbdullahMansoor47/midnight-shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -860,7 +859,6 @@ For example, to disable the bar on DP-1:
         "showMedia": true,
         "showOnHover": true,
         "showPerformance": true,
-        "showTerminal": true,
         "showWeather": true
     },
     "enabled": true,
@@ -1424,10 +1422,10 @@ Finally another thank you to all the configs I took inspiration from (only one f
 
 ## Stonks 📈
 
-<a href="https://www.star-history.com/#dim-ghub/midnight-shell&Date">
+<a href="https://www.star-history.com/#AbdullahMansoor47/midnight-shell&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dim-ghub/midnight-shell&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dim-ghub/midnight-shell&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dim-ghub/midnight-shell&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=AbdullahMansoor47/midnight-shell&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=AbdullahMansoor47/midnight-shell&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=AbdullahMansoor47/midnight-shell&type=Date" />
  </picture>
 </a>

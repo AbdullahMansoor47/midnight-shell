@@ -1,9 +1,7 @@
 import json
 import os
-import time
 
 SCHEME_PATH = os.path.expanduser("~/.local/state/caelestia/scheme.json")
-# We will generate BOTH css and js just in case
 CSS_OUT_PATH = os.path.expanduser("~/.local/share/ZapZap/customizations/global/css/caelestia.css")
 JS_OUT_PATH = os.path.expanduser("~/.local/share/ZapZap/customizations/global/js/caelestia.js")
 
@@ -15,113 +13,138 @@ def update():
     
     colors = data.get("colours", {})
     
-    bg = f"#{colors.get('background', '0b141a')}"
-    surface = f"#{colors.get('surface', '111b21')}"
-    surface_container = f"#{colors.get('surfaceContainer', '202c33')}"
+    bg_hex = colors.get('background', '0b141a')
+    surface_hex = colors.get('surface', '111b21')
+    surface_container_hex = colors.get('surfaceContainer', '202c33')
+    primary_container_hex = colors.get('primaryContainer', '005c4b')
+    surface_variant_hex = colors.get('surfaceVariant', '202c33')
     
+    # Base colors
+    bg = f"#{bg_hex}"
+    surface = f"#{surface_hex}"
+    surface_container = f"#{surface_container_hex}"
     primary = f"#{colors.get('primary', '00a884')}"
-    on_primary = f"#{colors.get('onPrimary', 'ffffff')}"
-    
-    secondary = f"#{colors.get('secondary', '202c33')}"
-    on_secondary = f"#{colors.get('onSecondary', 'ffffff')}"
-    
-    tertiary = f"#{colors.get('tertiary', '202c33')}"
-    on_tertiary = f"#{colors.get('onTertiary', 'ffffff')}"
+    primary_container = f"#{primary_container_hex}"
+    on_primary_container = f"#{colors.get('onPrimaryContainer', 'e9edef')}"
+    surface_variant = f"#{surface_variant_hex}"
+    on_surface_variant = f"#{colors.get('onSurfaceVariant', '8696a0')}"
+    on_surface = f"#{colors.get('onSurface', 'e9edef')}"
 
-    # Generate CSS with CSS variables and data attributes
+    # Translucent variants for glassmorphism
+    # bg: 60% opacity (approx 99 in hex)
+    bg_trans = f"#{bg_hex}aa" 
+    # surface: 75% opacity (approx bf in hex)
+    surface_trans = f"#{surface_hex}c0"
+    
     css = f"""
 /* Generated Caelestia Theme for ZapZap */
-:root {{
-    --c-bg: {bg} !important;
-    --c-surface: {surface} !important;
-    --c-primary: {primary} !important;
-    --c-on-primary: {on_primary} !important;
-    --c-secondary: {secondary} !important;
-    --c-on-secondary: {on_secondary} !important;
-    --c-tertiary: {tertiary} !important;
-    --c-on-tertiary: {on_tertiary} !important;
+:root, .dark, body.dark, [data-theme="dark"], html[dir="ltr"] .dark {{
+    /* Caelestia Variables for JS injection */
+    --c-primary-container: {primary_container} !important;
+    --c-surface-variant: {surface_variant} !important;
+    --c-on-primary-container: {on_primary_container} !important;
+    --c-on-surface: {on_surface} !important;
+
+    /* General Backgrounds with Transparency */
+    --background-default: {surface_trans} !important;
+    --background-default-hover: {surface_container} !important;
+    
+    /* Headers & Panels */
+    --panel-header-background: transparent !important;
+    --panel-background: transparent !important;
+    --drawer-background: {surface_trans} !important;
+    
+    /* Chat Area */
+    --chat-background: {bg_trans} !important;
+    --conversation-panel-background: {bg_trans} !important;
+    
+    /* Inputs */
+    --compose-input-background: {surface_container} !important;
+    --search-input-background: {surface_container} !important;
 }}
 
-[data-caelestia="chat-bg"] {{
-    background-color: var(--c-bg) !important;
+/* App Wrapper Transparency */
+body, #app, .app-wrapper-web, #main, #pane-side, #side, header {{
+    background-color: transparent !important;
+    background: transparent !important;
+}}
+
+/* We manually set the main blocks to our translucent colors so they stack properly */
+#app {{
+    background-color: {bg_trans} !important;
+}}
+#side, #pane-side {{
+    background-color: {surface_trans} !important;
+}}
+
+/* Disable WhatsApp Doodle Background */
+[data-asset-chat-background-dark="true"], 
+[data-asset-chat-background="true"] {{
+    background-color: transparent !important;
     background-image: none !important;
 }}
 
-[data-caelestia="sidebar"] {{
-    background-color: var(--c-primary) !important;
+/* Message Text Fixes */
+.caelestia-msg-out {{
+    background-color: var(--c-primary-container) !important;
+}}
+.caelestia-msg-out span, .caelestia-msg-out div {{
+    color: var(--c-on-primary-container) !important;
 }}
 
-/* Target the text in the sidebar to ensure readability on primary */
-[data-caelestia="sidebar"] span, [data-caelestia="sidebar"] div {{
-    color: var(--c-on-primary) !important;
+.caelestia-msg-in {{
+    background-color: var(--c-surface-variant) !important;
 }}
-
-[data-caelestia="bubble-out"] {{
-    background-color: var(--c-primary) !important;
-}}
-[data-caelestia="bubble-out"] span, [data-caelestia="bubble-out"] div {{
-    color: var(--c-on-primary) !important;
-}}
-
-[data-caelestia="bubble-in"] {{
-    background-color: var(--c-secondary) !important;
-}}
-[data-caelestia="bubble-in"] span, [data-caelestia="bubble-in"] div {{
-    color: var(--c-on-secondary) !important;
+.caelestia-msg-in span, .caelestia-msg-in div {{
+    color: var(--c-on-surface) !important;
 }}
 """
-    
+
     js = """
 // Generated Caelestia JS script for ZapZap
+// Uses Computed Style mapping to flawlessly find and theme bubbles!
 (function() {
-    function findBubble(row) {
-        // Find the deepest div that has a background color or border-radius
-        // A simple heuristic: bubbles usually have multiple classes and are deep in the tree.
-        // Actually, the bubble is typically the first div inside the row that contains the text.
-        // Let's just find the div with the class that starts with 'copyable-text' and get its parent, 
-        // or just apply it to the first child of the first child.
+    // Default WhatsApp Web dark mode bubble colors (to hunt for)
+    const WA_SENT_COLOR = "rgb(0, 92, 75)";
+    const WA_RECV_COLOR = "rgb(32, 44, 51)";
+
+    function themeBubbles() {
         try {
-            return row.children[0].children[0];
-        } catch(e) {
-            return row;
+            // Find all message rows
+            const rows = document.querySelectorAll('div[data-id]');
+            
+            rows.forEach(row => {
+                // Skip rows we already processed to save CPU
+                if (row.hasAttribute('data-caelestia-themed')) return;
+                
+                let foundBubble = false;
+                
+                // Inspect all divs inside this message row
+                const divs = row.querySelectorAll('div');
+                for (let i = 0; i < divs.length; i++) {
+                    const div = divs[i];
+                    // getComputedStyle is slow, but we only do it once per message!
+                    const bg = window.getComputedStyle(div).backgroundColor;
+                    
+                    if (bg === WA_SENT_COLOR) {
+                        div.classList.add('caelestia-msg-out');
+                        foundBubble = true;
+                    } else if (bg === WA_RECV_COLOR) {
+                        div.classList.add('caelestia-msg-in');
+                        foundBubble = true;
+                    }
+                }
+                
+                // Mark this row as processed even if we didn't find a bubble (e.g. system message)
+                row.setAttribute('data-caelestia-themed', 'true');
+            });
+        } catch (e) {
+            console.error("Caelestia Theme Error:", e);
         }
     }
 
-    function applyTheme() {
-        // Chat background
-        document.querySelectorAll('[data-asset-chat-background-dark]').forEach(el => {
-            el.setAttribute('data-caelestia', 'chat-bg');
-        });
-
-        // Sidebar (Chat List Panel)
-        const chatList = document.querySelector('[aria-label="Chat list"]');
-        if (chatList) {
-            // Find the container that represents the whole left sidebar
-            // Usually it's a few levels up, sibling to the main chat pane
-            let p = chatList;
-            for(let i=0; i<4; i++) {
-                if (p && p.parentElement) p = p.parentElement;
-            }
-            if (p) {
-                p.setAttribute('data-caelestia', 'sidebar');
-            }
-        }
-
-        // Outgoing Bubbles (Sent)
-        document.querySelectorAll('div[data-id^="true_"]').forEach(row => {
-            const bubble = findBubble(row);
-            if (bubble) bubble.setAttribute('data-caelestia', 'bubble-out');
-        });
-
-        // Incoming Bubbles (Received)
-        document.querySelectorAll('div[data-id^="false_"]').forEach(row => {
-            const bubble = findBubble(row);
-            if (bubble) bubble.setAttribute('data-caelestia', 'bubble-in');
-        });
-    }
-
-    // Run periodically to catch new messages and DOM changes (React dynamically loads content)
-    setInterval(applyTheme, 500);
+    // Run every second to catch new messages scrolling into view
+    setInterval(themeBubbles, 1000);
 })();
 """
 
