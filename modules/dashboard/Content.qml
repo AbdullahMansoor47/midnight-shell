@@ -41,12 +41,6 @@ Item {
                 iconName: "cloud",
                 text: qsTr("Weather"),
                 enabled: Config.dashboard.showWeather
-            },
-            {
-                component: terminalComponent,
-                iconName: "terminal",
-                text: qsTr("Terminal"),
-                enabled: Config.dashboard.showTerminal
             }
         ];
         return allTabs.filter(tab => tab.enabled);
@@ -202,12 +196,6 @@ Item {
                 id: weatherComponent
 
                 WeatherTab {}
-            }
-
-            Component {
-                id: terminalComponent
-
-                TerminalTab {}
             }
 
             Behavior on contentX {

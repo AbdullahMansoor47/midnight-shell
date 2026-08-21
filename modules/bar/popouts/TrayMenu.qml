@@ -141,7 +141,7 @@ StackView {
 
                             required property var modelData
 
-                            implicitWidth: parent.width
+                            implicitWidth: groupLayout.width
                             implicitHeight: childrenItem.implicitHeight
 
                             radius: Tokens.rounding.full

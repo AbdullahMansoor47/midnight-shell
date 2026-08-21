@@ -1,7 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Caelestia.Config
 import qs.components
+import qs.components.controls
 import qs.services
 
 Item {
@@ -19,12 +21,17 @@ Item {
         anchors.fill: parent
         spacing: Tokens.spacing.medium
 
-        RowLayout {
+        Item {
+            id: headerItem
             Layout.leftMargin: Tokens.padding.large
             Layout.rightMargin: Tokens.padding.large
             Layout.fillWidth: true
+            implicitHeight: Math.max(leftColumn.implicitHeight, centerColumn.implicitHeight, rightRow.implicitHeight)
 
             Column {
+                id: leftColumn
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: Tokens.spacing.extraSmall
 
                 StyledText {
@@ -36,20 +43,39 @@ Item {
 
                 StyledText {
                     text: new Date().toLocaleDateString(Qt.locale(), "dddd, MMMM d")
-                    font: Config.dashboard.showWeatherLocation !== false 
-                        ? Tokens.font.body.small 
+                    font: Config.dashboard.showWeatherLocation !== false
+                        ? Tokens.font.body.small
                         : Tokens.font.body.builders.large.size(28).weight(Font.DemiBold).build()
-                    color: Config.dashboard.showWeatherLocation !== false 
-                        ? Colours.palette.m3onSurfaceVariant 
+                    color: Config.dashboard.showWeatherLocation !== false
+                        ? Colours.palette.m3onSurfaceVariant
                         : Colours.palette.m3onSurface
                 }
             }
 
-            Item {
-                Layout.fillWidth: true
+            Column {
+                id: centerColumn
+                anchors.centerIn: parent
+                spacing: -Tokens.spacing.extraSmall
+
+                StyledText {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatDateTime(Time.date, "h:mm AP").split(" ")[0]
+                    font: Tokens.font.body.builders.large.size(32).weight(Font.DemiBold).build()
+                    color: Colours.palette.m3onSurface
+                }
+
+                StyledText {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatDateTime(Time.date, "A")
+                    font: Tokens.font.body.builders.small.weight(Font.Medium).build()
+                    color: Colours.palette.m3onSurfaceVariant
+                }
             }
 
             Row {
+                id: rightRow
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: Tokens.spacing.largeIncreased
 
                 WeatherStat {
@@ -68,69 +94,185 @@ Item {
             }
         }
 
-        StyledRect {
+        RowLayout {
             Layout.fillWidth: true
-            implicitHeight: bigInfoRow.implicitHeight + Tokens.padding.small
+            spacing: Tokens.spacing.medium
 
-            radius: Tokens.rounding.extraLarge * 2
-            color: Colours.tPalette.m3surfaceContainer
+            StyledRect {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                Layout.fillHeight: true
+                implicitHeight: bigInfoRow.implicitHeight + Tokens.padding.small
 
-            RowLayout {
-                id: bigInfoRow
+                radius: Tokens.rounding.extraLarge
+                color: Colours.tPalette.m3surfaceContainer
 
-                anchors.centerIn: parent
-                spacing: Tokens.spacing.largeIncreased
+                RowLayout {
+                    id: bigInfoRow
 
-                MaterialIcon {
-                    Layout.alignment: Qt.AlignVCenter
-                    text: Weather.icon
-                    fontStyle: Tokens.font.icon.builders.extraLarge.scale(3).build()
-                    color: Colours.palette.m3secondary
-                    animate: true
-                }
+                    anchors.centerIn: parent
+                    spacing: Tokens.spacing.medium
 
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: -Tokens.spacing.small
-
-                    StyledText {
-                        text: Weather.temp
-                        font: Tokens.font.body.builders.large.size(28 * 2).weight(Font.Medium).build()
-                        color: Colours.palette.m3primary
+                    MaterialIcon {
+                        Layout.alignment: Qt.AlignVCenter
+                        text: Weather.icon
+                        fontStyle: Tokens.font.icon.builders.extraLarge.scale(2.2).build()
+                        color: Colours.palette.m3secondary
+                        animate: true
                     }
 
-                    StyledText {
-                        Layout.leftMargin: Tokens.padding.extraSmall
-                        text: Weather.description
-                        font: Tokens.font.body.medium
-                        color: Colours.palette.m3onSurfaceVariant
+                    ColumnLayout {
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: -Tokens.spacing.small
+
+                        StyledText {
+                            text: Weather.temp
+                            font: Tokens.font.body.builders.large.size(36).weight(Font.Medium).build()
+                            color: Colours.palette.m3primary
+                        }
+
+                        StyledText {
+                            Layout.leftMargin: Tokens.padding.extraSmall
+                            text: Weather.description
+                            font: Tokens.font.body.medium
+                            color: Colours.palette.m3onSurfaceVariant
+                        }
+                    }
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                Layout.fillHeight: true
+                spacing: Tokens.spacing.medium
+
+                DetailCard {
+                    icon: "water_drop"
+                    label: "Humidity"
+                    value: Weather.humidity + "%"
+                    colour: Colours.palette.m3secondary
+                }
+                DetailCard {
+                    icon: "thermostat"
+                    label: "Feels Like"
+                    value: Weather.feelsLike
+                    colour: Colours.palette.m3primary
+                }
+                DetailCard {
+                    icon: "air"
+                    label: "Wind"
+                    value: Weather.windSpeed ? Weather.windSpeed + " km/h" : "--"
+                    colour: Colours.palette.m3tertiary
+                }
+            }
+        }
+
+        StyledText {
+            Layout.topMargin: Tokens.spacing.medium
+            Layout.leftMargin: Tokens.padding.medium
+            visible: hourlyRepeater.count > 0
+            text: qsTr("Hourly Forecast")
+            font: Tokens.font.body.builders.medium.weight(Font.DemiBold).build()
+            color: Colours.palette.m3onSurface
+        }
+
+        Flickable {
+            id: hourlyFlickable
+            Layout.fillWidth: true
+            implicitHeight: hourlyContentRow.implicitHeight
+            contentWidth: hourlyContentRow.implicitWidth
+            contentHeight: hourlyContentRow.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.HorizontalFlick
+
+            CustomMouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton
+
+                function onWheel(event: WheelEvent): void {
+                    hourlyFlickable.flick(event.angleDelta.y * 12, 0);
+                }
+            }
+
+            Row {
+                id: hourlyContentRow
+                spacing: Tokens.spacing.medium
+
+                Repeater {
+                    id: hourlyRepeater
+                    model: Weather.hourlyForecast
+
+                    StyledRect {
+                        id: hourlyItem
+                        required property int index
+                        required property var modelData
+
+                        width: (hourlyFlickable.width - Tokens.spacing.medium * 6) / 7
+                        implicitHeight: hourlyItemColumn.implicitHeight + Tokens.padding.medium * 2
+
+                        radius: Tokens.rounding.large
+                        color: Colours.tPalette.m3surfaceContainer
+
+                        ColumnLayout {
+                            id: hourlyItemColumn
+                            anchors.centerIn: parent
+                            spacing: Tokens.spacing.small
+
+                            StyledText {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: hourlyItem.index === 0 ? qsTr("Now") : Qt.formatDateTime(new Date(hourlyItem.modelData.timestamp), GlobalConfig.services.useTwelveHourClock ? "h A" : "h:mm")
+                                font: Tokens.font.body.builders.medium.weight(Font.DemiBold).build()
+                                color: Colours.palette.m3primary
+                            }
+
+                            StyledText {
+                                Layout.topMargin: -Tokens.spacing.extraSmall
+                                Layout.alignment: Qt.AlignHCenter
+                                text: Weather.getWeatherCondition(hourlyItem.modelData.weatherCode)
+                                font: Tokens.font.body.small
+                                opacity: 0.7
+                                color: Colours.palette.m3onSurfaceVariant
+                                elide: Text.ElideRight
+                                Layout.maximumWidth: hourlyItem.width - Tokens.padding.small
+                            }
+
+                            MaterialIcon {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: hourlyItem.modelData.icon
+                                fontStyle: Tokens.font.icon.extraLarge
+                                color: Colours.palette.m3secondary
+                            }
+
+                            StyledText {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: Weather.formatTemp(hourlyItem.modelData.tempC)
+                                font: Tokens.font.body.builders.small.weight(Font.DemiBold).build()
+                                color: Colours.palette.m3tertiary
+                            }
+
+                            StyledText {
+                                Layout.topMargin: -Tokens.spacing.extraSmall
+                                Layout.alignment: Qt.AlignHCenter
+                                text: hourlyItem.modelData.precipChance > 0 ? hourlyItem.modelData.precipChance + "%" : " "
+                                font: Tokens.font.body.small
+                                opacity: 0.5
+                                color: Colours.palette.m3onSurfaceVariant
+                            }
+                        }
                     }
                 }
             }
         }
 
-        RowLayout {
+        StyledScrollBar {
             Layout.fillWidth: true
-            spacing: Tokens.spacing.medium
-
-            DetailCard {
-                icon: "water_drop"
-                label: "Humidity"
-                value: Weather.humidity + "%"
-                colour: Colours.palette.m3secondary
-            }
-            DetailCard {
-                icon: "thermostat"
-                label: "Feels Like"
-                value: Weather.feelsLike
-                colour: Colours.palette.m3primary
-            }
-            DetailCard {
-                icon: "air"
-                label: "Wind"
-                value: Weather.windSpeed ? Weather.windSpeed + " km/h" : "--"
-                colour: Colours.palette.m3tertiary
-            }
+            flickable: hourlyFlickable
+            orientation: Qt.Horizontal
+            interactive: false
+            size: hourlyFlickable.visibleArea.widthRatio
+            position: hourlyFlickable.visibleArea.xPosition
         }
 
         StyledText {
@@ -218,7 +360,7 @@ Item {
 
         Layout.fillWidth: true
         Layout.preferredHeight: 60
-        radius: Tokens.rounding.medium
+        radius: Tokens.rounding.extraLarge
         color: Colours.tPalette.m3surfaceContainer
 
         Row {

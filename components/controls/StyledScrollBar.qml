@@ -76,6 +76,7 @@ ScrollBar {
             id: mouse
 
             anchors.fill: parent
+            enabled: root.interactive
             cursorShape: Qt.PointingHandCursor
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
@@ -131,6 +132,7 @@ ScrollBar {
 
     CustomMouseArea {
         id: fullMouse
+        enabled: root.interactive
 
         function onWheel(event: WheelEvent): void {
             root.animating = true;
@@ -186,7 +188,7 @@ ScrollBar {
     }
 
     Behavior on position {
-        enabled: !fullMouse.pressed
+        enabled: root.interactive && !fullMouse.pressed
 
         Anim {}
     }

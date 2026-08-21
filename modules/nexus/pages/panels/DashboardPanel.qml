@@ -239,25 +239,13 @@ PageBase {
 
         ToggleRow {
             Layout.fillWidth: true
+            last: true
             text: qsTr("Weather")
             configNode: root.targetConfig.dashboard
             propertyName: "showWeather"
             checked: root.targetConfig.dashboard.showWeather
             onToggled: {
                 root.targetConfig.dashboard.showWeather = checked;
-                root.targetConfig.save();
-            }
-        }
-
-        ToggleRow {
-            Layout.fillWidth: true
-            last: true
-            text: qsTr("Terminal")
-            configNode: root.targetConfig.dashboard
-            propertyName: "showTerminal"
-            checked: root.targetConfig.dashboard.showTerminal
-            onToggled: {
-                root.targetConfig.dashboard.showTerminal = checked;
                 root.targetConfig.save();
             }
         }

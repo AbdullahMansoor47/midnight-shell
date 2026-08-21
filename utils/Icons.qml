@@ -158,10 +158,16 @@ Singleton {
         return "bluetooth";
     }
 
-    function getWeatherIcon(code: string): string {
+    function getWeatherIcon(code: string, isDay = true): string {
+        let icon = "air";
         if (weatherIcons.hasOwnProperty(code))
-            return weatherIcons[code];
-        return "air";
+            icon = weatherIcons[code];
+        
+        if (!isDay) {
+            if (icon === "clear_day") return "clear_night";
+            if (icon === "partly_cloudy_day") return "partly_cloudy_night";
+        }
+        return icon;
     }
 
     function getNotifIcon(summary: string, urgency: int): string {

@@ -152,7 +152,10 @@ Singleton {
         path: `${Paths.state}/scheme.json`
         watchChanges: true
         onFileChanged: reload()
-        onLoaded: root.load(text(), false)
+        onLoaded: {
+            root.load(text(), false)
+            Quickshell.execDetached(["python3", "/home/abdullah/.config/quickshell/caelestia/scripts/zapzap_sync.py"])
+        }
     }
 
     ImageAnalyser {
