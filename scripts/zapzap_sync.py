@@ -19,7 +19,7 @@ def update():
     primary_container_hex = colors.get('primaryContainer', '005c4b')
     surface_variant_hex = colors.get('surfaceVariant', '202c33')
     
-    # Base colors
+    # Base colors (Solid, no transparency to avoid QtWebEngine rendering bugs)
     bg = f"#{bg_hex}"
     surface = f"#{surface_hex}"
     surface_container = f"#{surface_container_hex}"
@@ -29,62 +29,65 @@ def update():
     surface_variant = f"#{surface_variant_hex}"
     on_surface_variant = f"#{colors.get('onSurfaceVariant', '8696a0')}"
     on_surface = f"#{colors.get('onSurface', 'e9edef')}"
-
-    # Translucent variants for glassmorphism
-    # bg: 60% opacity (approx 99 in hex)
-    bg_trans = f"#{bg_hex}aa" 
-    # surface: 75% opacity (approx bf in hex)
-    surface_trans = f"#{surface_hex}c0"
     
     css = f"""
 /* Generated Caelestia Theme for ZapZap */
 :root, .dark, body.dark, [data-theme="dark"], html[dir="ltr"] .dark {{
-    /* Caelestia Variables for JS injection */
+    /* Caelestia Variables */
+    --c-bg: {bg} !important;
+    --c-surface: {surface} !important;
+    --c-surface-container: {surface_container} !important;
     --c-primary-container: {primary_container} !important;
-    --c-surface-variant: {surface_variant} !important;
     --c-on-primary-container: {on_primary_container} !important;
+    --c-surface-variant: {surface_variant} !important;
     --c-on-surface: {on_surface} !important;
+    --c-on-surface-variant: {on_surface_variant} !important;
 
-    /* General Backgrounds with Transparency */
-    --background-default: {surface_trans} !important;
-    --background-default-hover: {surface_container} !important;
-    
-    /* Headers & Panels */
-    --panel-header-background: transparent !important;
-    --panel-background: transparent !important;
-    --drawer-background: {surface_trans} !important;
-    
-    /* Chat Area */
-    --chat-background: {bg_trans} !important;
-    --conversation-panel-background: {bg_trans} !important;
-    
-    /* Inputs */
-    --compose-input-background: {surface_container} !important;
-    --search-input-background: {surface_container} !important;
+    /* Native Variables (Fallback) */
+    --background-default: var(--c-surface) !important;
+    --background-default-hover: var(--c-surface-container) !important;
+    --panel-header-background: var(--c-surface-container) !important;
+    --panel-background: var(--c-surface) !important;
+    --chat-background: var(--c-bg) !important;
+    --conversation-panel-background: var(--c-bg) !important;
+    --compose-input-background: var(--c-surface-container) !important;
+    --search-input-background: var(--c-surface-container) !important;
 }}
 
-/* App Wrapper Transparency */
-body, #app, .app-wrapper-web, #main, #pane-side, #side, header {{
-    background-color: transparent !important;
-    background: transparent !important;
+/* App Backgrounds */
+body, #app, .app-wrapper-web, #main {{
+    background-color: var(--c-bg) !important;
 }}
 
-/* We manually set the main blocks to our translucent colors so they stack properly */
-#app {{
-    background-color: {bg_trans} !important;
-}}
+/* Sidebar Background */
 #side, #pane-side {{
-    background-color: {surface_trans} !important;
+    background-color: var(--c-surface) !important;
 }}
 
-/* Disable WhatsApp Doodle Background */
+/* Chat List Panel Items (The panels themselves) */
+.caelestia-chat-row {{
+    background-color: var(--c-surface) !important;
+}}
+.caelestia-chat-row:hover {{
+    background-color: var(--c-surface-container) !important;
+}}
+.caelestia-chat-row * {{
+    border-color: transparent !important;
+}}
+
+/* Headers */
+header {{
+    background-color: var(--c-surface-container) !important;
+}}
+
+/* Disable WhatsApp Doodle */
 [data-asset-chat-background-dark="true"], 
 [data-asset-chat-background="true"] {{
-    background-color: transparent !important;
+    background-color: var(--c-bg) !important;
     background-image: none !important;
 }}
 
-/* Message Text Fixes */
+/* Dynamic Message Bubbles injected by JS */
 .caelestia-msg-out {{
     background-color: var(--c-primary-container) !important;
 }}
@@ -102,49 +105,79 @@ body, #app, .app-wrapper-web, #main, #pane-side, #side, header {{
 
     js = """
 // Generated Caelestia JS script for ZapZap
-// Uses Computed Style mapping to flawlessly find and theme bubbles!
+// Uses structural DOM walking to perfectly theme WhatsApp Web!
 (function() {
-    // Default WhatsApp Web dark mode bubble colors (to hunt for)
-    const WA_SENT_COLOR = "rgb(0, 92, 75)";
-    const WA_RECV_COLOR = "rgb(32, 44, 51)";
-
-    function themeBubbles() {
+    function themeElements() {
         try {
-            // Find all message rows
+            // 1. Theme Message Bubbles
             const rows = document.querySelectorAll('div[data-id]');
-            
             rows.forEach(row => {
-                // Skip rows we already processed to save CPU
-                if (row.hasAttribute('data-caelestia-themed')) return;
+                if (row.dataset.caelestiaThemed) return;
                 
-                let foundBubble = false;
+                const isSent = row.getAttribute('data-id').startsWith('true_');
+                const colorClass = isSent ? 'caelestia-msg-out' : 'caelestia-msg-in';
                 
-                // Inspect all divs inside this message row
-                const divs = row.querySelectorAll('div');
-                for (let i = 0; i < divs.length; i++) {
-                    const div = divs[i];
-                    // getComputedStyle is slow, but we only do it once per message!
-                    const bg = window.getComputedStyle(div).backgroundColor;
-                    
-                    if (bg === WA_SENT_COLOR) {
-                        div.classList.add('caelestia-msg-out');
-                        foundBubble = true;
-                    } else if (bg === WA_RECV_COLOR) {
-                        div.classList.add('caelestia-msg-in');
-                        foundBubble = true;
+                // Find the text node inside the message
+                const textNodes = row.querySelectorAll('[data-preplain-text], .copyable-text');
+                if (textNodes.length > 0) {
+                    // Start from the text node and walk UP the DOM tree to find the painted bubble wrapper
+                    let bubble = textNodes[0];
+                    while (bubble && bubble !== row) {
+                        const style = window.getComputedStyle(bubble);
+                        const bg = style.backgroundColor;
+                        
+                        // If it has a solid background color, it's the bubble container!
+                        if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+                            bubble.classList.add(colorClass);
+                            bubble.style.setProperty('background-image', 'none', 'important');
+                            
+                            // Color the little message tail arrow if it exists (usually an SVG or pseudo-element sibling)
+                            const svgs = bubble.parentElement.querySelectorAll('svg');
+                            svgs.forEach(svg => {
+                                // Sometimes the arrow is a span with an svg
+                                svg.style.color = isSent ? 'var(--c-primary-container)' : 'var(--c-surface-variant)';
+                            });
+                            
+                            break;
+                        }
+                        bubble = bubble.parentElement;
+                    }
+                } else {
+                    // Fallback for image-only/sticker messages without text
+                    const divs = row.querySelectorAll('div');
+                    for (let i = 0; i < divs.length; i++) {
+                        const bg = window.getComputedStyle(divs[i]).backgroundColor;
+                        if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+                            divs[i].classList.add(colorClass);
+                            break;
+                        }
                     }
                 }
-                
-                // Mark this row as processed even if we didn't find a bubble (e.g. system message)
-                row.setAttribute('data-caelestia-themed', 'true');
+                row.dataset.caelestiaThemed = 'true';
             });
+            
+            // 2. Theme Sidebar Chat Rows
+            const chatList = document.querySelector('[aria-label="Chat list"]');
+            if (chatList) {
+                const chatRows = chatList.querySelectorAll('[role="listitem"]');
+                chatRows.forEach(item => {
+                    // Find the deepest inner div that paints the background
+                    let innerBg = item.querySelector('div > div > div');
+                    if (innerBg) {
+                        innerBg.classList.add('caelestia-chat-row');
+                    } else {
+                        item.classList.add('caelestia-chat-row');
+                    }
+                });
+            }
+            
         } catch (e) {
             console.error("Caelestia Theme Error:", e);
         }
     }
 
-    // Run every second to catch new messages scrolling into view
-    setInterval(themeBubbles, 1000);
+    // Run periodically to catch new DOM elements
+    setInterval(themeElements, 1000);
 })();
 """
 

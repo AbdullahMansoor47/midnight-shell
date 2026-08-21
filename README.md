@@ -65,31 +65,7 @@ Build dependencies:
 -   [`cmake`](https://cmake.org)
 -   [`ninja`](https://github.com/ninja-build/ninja)
 
-To install the shell, you can either use [pkgit](https://git.symlinx.net/pkgit) or the [AUR (In Testing)](https://aur.archlinux.org/packages/midnight-shell-git)
-
-Using `pkgit`:
-
-Install `[pkgit](https://git.symlinx.net/pkgit)` (also available on the AUR as `pkgit-git`).
-
-Then you can simply install the shell directly from GitHub without cloning it:
-
-```sh
-pkgit -i https://github.com/AbdullahMansoor47/midnight-shell
-```
-
-Using `AUR`
-if `paru`:
-```sh
-paru -S midnight-shell-git
-```
-if `yay`:
-```
-yay -S midnight-shell-git
-```
-
-#### Manual installation
-
-To install the shell manually, install all dependencies and clone **this fork** to `$XDG_CONFIG_HOME/quickshell/caelestia`.
+To install the shell, install all dependencies and clone **this fork** to `$XDG_CONFIG_HOME/quickshell/caelestia`.
 Then simply build and install using `cmake`:
 
 ```sh
@@ -117,41 +93,6 @@ sudo cmake --install build
 > sudo cmake --install build
 > sudo chown -R $USER ~/.config/quickshell/caelestia
 > ```
-
-### Nix
-> [!WARNING]
-> This repository has limited/no support for NixOS! Proceed at your own risk.
-
-You can run the shell directly via `nix run`:
-
-```sh
-nix run github:AbdullahMansoor47/midnight-shell
-```
-
-Or add it to your system configuration:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-
-    midnight-shell = {
-      url = "github:AbdullahMansoor47/midnight-shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-}
-```
-
-The package is available as `midnight-shell.packages.<system>.default`, which can be added to your
-`environment.systemPackages`, `users.users.<username>.packages`, `home.packages` if using home-manager,
-or a devshell. The shell can then be run via `midnight-shell`.
-
-> [!TIP]
-> The default package does not have the CLI enabled by default, which is required for full funcionality.
-> To enable the CLI, use the `with-cli` package.
-
-For home-manager, you can also use the MiDnight's home manager module (explained in [home manager module](#home-manager-module)) that installs and configures the shell and the CLI.
 
 ## Components
 
@@ -320,29 +261,18 @@ the command.
 
 ## Updating
 
-If installed via the AUR package, simply update your system (e.g. using `yay`).
-
-If you installed via `pkgit`, you can update using `pkgit -u`.
-> [!NOTE]
-> If `pkgit -u` fails to update the shell for any reason, run `pkgit -fi midnight-shell`. If that command throws an error, simply run it again.
-
-If installed manually, pull the latest changes and re-run the installation:
+To update, pull the latest changes and re-run the installation:
 
 ```sh
 cd $XDG_CONFIG_HOME/quickshell/caelestia
 git pull
-pkgit -i .
+cmake --build build
+sudo cmake --install build
 ```
 
 ## Uninstalling
 
-To cleanly uninstall the shell and its components, simply run `pkgit`'s uninstall command:
-
-```sh
-pkgit -r midnight-shell
-```
-
-or your AUR helper's uninstall command.
+To uninstall the shell, remove the installed files from your system. (e.g. running `sudo xargs rm < build/install_manifest.txt` from the build directory)\.
 
 ## Configuring
 
