@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Caelestia.Config
 import Caelestia.Services
 import qs.components
@@ -9,19 +10,93 @@ import qs.services
 
 StyledRect {
     id: root
+    property var customDisks: []
+    property var activeDisk: null
+    property string _lsblkOutput: ""
+
+    Process {
+        id: lsblkProc
+        command: ["lsblk", "-J", "-b", "-o", "NAME,LABEL,MOUNTPOINTS,SIZE,FSUSED"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const json = JSON.parse(text);
+                    const disks = [];
+                    function processBlockDevices(devices) {
+                        for (let dev of (devices || [])) {
+                            let mntArray = dev.mountpoints || [];
+                            if (mntArray.includes("/boot") || mntArray.includes("[SWAP]")) {
+                                continue; // ignore boot and swap
+                            }
+                            
+                            let mnt = null;
+                            if (mntArray.includes("/")) {
+                                mnt = "/";
+                            } else if (mntArray.length > 0) {
+                                mnt = mntArray[0];
+                            }
+                            
+                            if (mnt) {
+                                const total = Math.floor((dev.size || 0) / 1024);
+                                const used = Math.floor((dev.fsused || 0) / 1024);
+                                const perc = total > 0 ? used / total : 0;
+                                const hasRoot = (mnt === "/");
+                                let name = dev.label || mnt;
+                                if (name === "/") name = "File System";
+                                disks.push({
+                                    mount: mnt,
+                                    label: name,
+                                    used: used,
+                                    total: total,
+                                    free: total - used,
+                                    perc: perc,
+                                    hasRoot: hasRoot
+                                });
+                            }
+                            if (dev.children) {
+                                processBlockDevices(dev.children);
+                            }
+                        }
+                    }
+                    processBlockDevices(json.blockdevices);
+                    disks.sort((a, b) => (b.hasRoot ? 1 : 0) - (a.hasRoot ? 1 : 0) || a.label.localeCompare(b.label));
+                    
+                    const oldActive = root.activeDisk;
+                    root.customDisks = disks;
+                    
+                    if (oldActive) {
+                        const match = disks.find(d => d.mount === oldActive.mount);
+                        if (match) {
+                            root.activeDisk = match;
+                        } else {
+                            root.activeDisk = disks.find(d => d.hasRoot) || disks[0];
+                        }
+                    } else if (disks.length > 0) {
+                        root.activeDisk = disks.find(d => d.hasRoot) || disks[0];
+                    }
+                } catch (e) {
+                    console.log("lsblk parse error: " + e);
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 10000
+        running: true
+        repeat: true
+        onTriggered: lsblkProc.running = true
+    }
 
     readonly property color accent: Colours.palette.m3secondary
-    readonly property real percentage: Storage.primaryDisk?.perc ?? 0
+    readonly property real percentage: activeDisk?.perc ?? 0
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.extraExtraLarge
 
     implicitWidth: layout.implicitWidth + layout.anchors.margins * 2
     implicitHeight: layout.implicitHeight + Tokens.padding.large * 2
-
-    ServiceRef {
-        service: Storage
-    }
 
     ColumnLayout {
         id: layout
@@ -89,10 +164,10 @@ StyledRect {
 
                 StyledText {
                     text: {
-                        if (!Storage.primaryDisk)
+                        if (!root.activeDisk)
                             return qsTr("No disks detected");
 
-                        const fmt = UsageFmt.formatKib(Storage.primaryDisk.used, Storage.primaryDisk.total);
+                        const fmt = UsageFmt.formatKib(root.activeDisk.used, root.activeDisk.total);
                         return `${+fmt.value.toFixed(1)} / ${+fmt.total.toFixed(1)} ${fmt.unit}`;
                     }
                     font: Tokens.font.body.large
@@ -103,22 +178,22 @@ StyledRect {
 
         SplitButton {
             Layout.alignment: Qt.AlignHCenter
+            Layout.minimumWidth: Math.max(row.implicitWidth * 0.6, implicitWidth)
 
             type: SplitButton.Tonal
-            disabled: !Storage.disks.length
+            disabled: !root.customDisks.length
             fallbackIcon: "storage"
             fallbackText: qsTr("No disks")
             menuOnTop: true
-            minLeftWidth: row.implicitWidth * 0.6
 
             menuItems: disks.instances
-            active: menuItems.find(m => m.modelData === Storage.primaryDisk) ?? menuItems[0] ?? null
-            menu.onItemSelected: item => Storage.manualPrimaryDisk = (item as DiskItem).modelData
+            active: menuItems.find(m => m.modelData === root.activeDisk) ?? menuItems[0] ?? null
+            menu.onItemSelected: item => root.activeDisk = (item as DiskItem).modelData
 
             Variants {
                 id: disks
 
-                model: Storage.disks
+                model: root.customDisks
 
                 DiskItem {}
             }
@@ -128,8 +203,8 @@ StyledRect {
     component DiskItem: MenuItem {
         required property var modelData
 
-        icon: modelData === Storage.primaryDisk ? "check" : ""
-        text: modelData.mount
+        icon: modelData === root.activeDisk ? "check" : ""
+        text: modelData.label
         activeIcon: "storage"
     }
 }

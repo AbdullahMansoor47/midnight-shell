@@ -186,13 +186,38 @@ Item {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickableDirection: Flickable.HorizontalFlick
+            onDragStarted: scrollAnim.stop()
+
+            NumberAnimation {
+                id: scrollAnim
+                target: hourlyFlickable
+                property: "contentX"
+                duration: 250
+                easing.type: Easing.OutCubic
+                onRunningChanged: {
+                    if (running) {
+                        hourlyScrollBar.shouldBeActive = true;
+                    } else {
+                        hourlyScrollBar.shouldBeActive = false;
+                    }
+                }
+            }
 
             CustomMouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.NoButton
 
+                property real targetX: hourlyFlickable.contentX
+
                 function onWheel(event: WheelEvent): void {
-                    hourlyFlickable.flick(event.angleDelta.y * 12, 0);
+                    if (!scrollAnim.running) {
+                        targetX = hourlyFlickable.contentX;
+                    }
+                    targetX -= event.angleDelta.y * 1.75;
+                    targetX = Math.max(0, Math.min(targetX, hourlyFlickable.contentWidth - hourlyFlickable.width));
+
+                    scrollAnim.to = targetX;
+                    scrollAnim.restart();
                 }
             }
 
@@ -267,6 +292,7 @@ Item {
         }
 
         StyledScrollBar {
+            id: hourlyScrollBar
             Layout.fillWidth: true
             flickable: hourlyFlickable
             orientation: Qt.Horizontal

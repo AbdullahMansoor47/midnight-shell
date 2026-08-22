@@ -306,7 +306,7 @@ For example, to disable the bar on DP-1:
 >
 > - `appearance` (`anim`, `transparency`)
 > - `general` (`logo`, `apps`, `idle`, `battery`)
-> - `bar.workspaces` (`perMonitorWorkspaces`, `specialWorkspaceIcons`, `windowIcons`, `wsIcons`)
+> - `bar.workspaces` (`ignoredTags`, `perMonitorWorkspaces`, `specialWorkspaceIcons`, `windowIcons`, `wsIcons`)
 > - `bar.tray` (`iconSubs`, `hiddenIcons`)
 > - `dashboard` (`mediaUpdateInterval`, `resourceUpdateInterval`)
 > - `launcher` (`specialPrefix`, `actionPrefix`, `enableDangerousActions`, `vimKeybinds`,
@@ -754,6 +754,10 @@ For example, to disable the bar on DP-1:
             "showWindowsOnSpecialWorkspaces": true,
             "shown": 5,
             "specialWorkspaceIcons": [],
+            "ignoredTags": [
+                "hide_in_bar",
+                "xwl_popup"
+            ],
             "useIcon": true,
             "windowIcons": [
                 {
