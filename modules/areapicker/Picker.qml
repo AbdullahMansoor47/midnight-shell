@@ -41,17 +41,17 @@ MouseArea {
         const special = mon.lastIpcObject.specialWorkspace;
         const wsId = special.name ? special.id : mon.activeWorkspace.id;
 
-        return Hypr.toplevelsForWs(wsId).sort((a, b) => {
+        return Array.from(Hypr.toplevelsForWs(wsId)).sort((a, b) => {
             // Pinned first, then fullscreen, then floating, then any other
-            const ac = a.lastIpcObject;
-            const bc = b.lastIpcObject;
-            return (bc.pinned - ac.pinned) || ((bc.fullscreen !== 0) - (ac.fullscreen !== 0)) || (bc.floating - ac.floating);
+            const ac = a?.lastIpcObject || {};
+            const bc = b?.lastIpcObject || {};
+            return ((bc.pinned?1:0) - (ac.pinned?1:0)) || (((bc.fullscreen||0) !== 0 ? 1 : 0) - ((ac.fullscreen||0) !== 0 ? 1 : 0)) || ((bc.floating?1:0) - (ac.floating?1:0));
         });
     }
 
     function checkClientRects(x: real, y: real): void {
         for (const client of clients) {
-            if (!client)
+            if (!client || !client.lastIpcObject || !client.lastIpcObject.at || !client.lastIpcObject.size)
                 continue;
 
             let {
@@ -107,7 +107,7 @@ MouseArea {
         opacity = 1;
 
         const c = clients[0];
-        if (c) {
+        if (c && c.lastIpcObject && c.lastIpcObject.at && c.lastIpcObject.size) {
             const cx = c.lastIpcObject.at[0] - screen.x;
             const cy = c.lastIpcObject.at[1] - screen.y;
             onClient = true;

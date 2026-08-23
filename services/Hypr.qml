@@ -87,13 +87,13 @@ Singleton {
         return Hyprland.monitorFor(screen);
     }
 
-    function toplevelsForWs(ws: int): list<HyprlandToplevel> {
+    function toplevelsForWs(ws: int): var {
         return toplevels.values.filter(t => t.workspace && t.workspace.id === ws && !isToplevelIgnored(t));
     }
 
     function isToplevelIgnored(toplevel: HyprlandToplevel): bool {
         const ipc = toplevel?.lastIpcObject;
-        if (!ipc?.class || !ipc.mapped)
+        if (!ipc?.["class"] || !ipc.mapped)
             return true;
 
         const ignoredTags = GlobalConfig.bar.workspaces.ignoredTags;
