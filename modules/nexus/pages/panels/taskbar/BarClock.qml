@@ -2,12 +2,13 @@ pragma ComponentBehavior: Bound
 
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.modules.nexus.common
 
 PageBase {
     id: root
 
-    title: qsTr("Clock")
+    title: Tr.tr("Clock")
     isSubPage: true
 
     ColumnLayout {
@@ -40,13 +41,24 @@ PageBase {
         }
 
         ToggleRow {
-            last: true
             text: qsTr("Show icon")
             configNode: root.targetConfig.bar.clock
             propertyName: "showIcon"
             checked: root.targetConfig.bar.clock.showIcon
             onToggled: {
                 root.targetConfig.bar.clock.showIcon = checked;
+                root.targetConfig.save();
+            }
+        }
+
+        ToggleRow {
+            last: true
+            text: qsTr("Show seconds")
+            configNode: root.targetConfig.bar.clock
+            propertyName: "showSeconds"
+            checked: root.targetConfig.bar.clock.showSeconds
+            onToggled: {
+                root.targetConfig.bar.clock.showSeconds = checked;
                 root.targetConfig.save();
             }
         }

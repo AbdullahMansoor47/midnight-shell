@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Caelestia
+import Caelestia.I18n
 import qs.components
 import qs.components.effects
 import qs.services
@@ -38,26 +39,34 @@ MouseArea {
         if (!mon)
             return [];
 
-        const special = mon.lastIpcObject.specialWorkspace;
-        const wsId = special.name ? special.id : mon.activeWorkspace.id;
+        const special = mon.lastIpcObject?.specialWorkspace;
+        const wsId = special?.name ? special.id : mon.activeWorkspace?.id;
+        if (wsId === undefined)
+            return [];
 
-        return Array.from(Hypr.toplevelsForWs(wsId)).sort((a, b) => {
+        return Hypr.toplevelsForWs(wsId).sort((a, b) => {
             // Pinned first, then fullscreen, then floating, then any other
-            const ac = a?.lastIpcObject || {};
-            const bc = b?.lastIpcObject || {};
-            return ((bc.pinned?1:0) - (ac.pinned?1:0)) || (((bc.fullscreen||0) !== 0 ? 1 : 0) - ((ac.fullscreen||0) !== 0 ? 1 : 0)) || ((bc.floating?1:0) - (ac.floating?1:0));
+            const ac = a?.lastIpcObject;
+            const bc = b?.lastIpcObject;
+            if (!ac || !bc)
+                return !ac - !bc; // Missing IPC last
+            return (bc.pinned - ac.pinned) || ((bc.fullscreen !== 0) - (ac.fullscreen !== 0)) || (bc.floating - ac.floating);
         });
     }
 
     function checkClientRects(x: real, y: real): void {
         for (const client of clients) {
-            if (!client || !client.lastIpcObject || !client.lastIpcObject.at || !client.lastIpcObject.size)
+            if (!client)
+                continue;
+
+            const ipc = client.lastIpcObject;
+            if (!ipc?.at || !ipc?.size)
                 continue;
 
             let {
                 at: [cx, cy],
                 size: [cw, ch]
-            } = client.lastIpcObject;
+            } = ipc;
             cx -= screen.x;
             cy -= screen.y;
             if (cx <= x && cy <= y && cx + cw >= x && cy + ch >= y) {
@@ -105,15 +114,15 @@ MouseArea {
 
         opacity = 1;
 
-        const c = clients[0];
-        if (c && c.lastIpcObject && c.lastIpcObject.at && c.lastIpcObject.size) {
-            const cx = c.lastIpcObject.at[0] - screen.x;
-            const cy = c.lastIpcObject.at[1] - screen.y;
+        const ipc = clients[0]?.lastIpcObject;
+        if (ipc?.at && ipc?.size) {
+            const cx = ipc.at[0] - screen.x;
+            const cy = ipc.at[1] - screen.y;
             onClient = true;
             sx = cx;
             sy = cy;
-            ex = cx + c.lastIpcObject.size[0];
-            ey = cy + c.lastIpcObject.size[1];
+            ex = cx + ipc.size[0];
+            ey = cy + ipc.size[1];
         } else {
             sx = screen.width / 2 - 100;
             sy = screen.height / 2 - 100;

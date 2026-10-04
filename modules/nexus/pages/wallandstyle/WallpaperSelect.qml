@@ -6,6 +6,8 @@ import Quickshell
 import Caelestia
 import Caelestia.Components
 import Caelestia.Config
+import Caelestia.I18n
+import Caelestia.Images
 import Caelestia.Models
 import qs.components
 import qs.components.controls
@@ -89,7 +91,7 @@ PageBase {
 
             IconTextButton {
                 icon: "photo_library"
-                text: qsTr("Browse")
+                text: Tr.tr("Browse")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -100,8 +102,8 @@ PageBase {
                 FileDialog {
                     id: browseDialog
 
-                    title: qsTr("Select an image")
-                    filterLabel: qsTr("Image files")
+                    title: Tr.tr("Select an image")
+                    filterLabel: Tr.tr("Image files")
                     filters: Images.validImageExtensions
                     onAccepted: path => {
                         Wallpapers.setWallpaper(path);
@@ -137,7 +139,7 @@ PageBase {
 
             IconTextButton {
                 icon: "shuffle"
-                text: qsTr("Random")
+                text: Tr.tr("Random")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -424,7 +426,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.large
-            text: qsTr("Local wallpapers")
+            text: Tr.tr("Local wallpapers")
             font: Tokens.font.title.small
         }
 
@@ -579,7 +581,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("No local wallpapers found")
+                        text: Tr.tr("No local wallpapers found")
                         color: Colours.palette.m3outline
                         font: Tokens.font.title.small
                     }

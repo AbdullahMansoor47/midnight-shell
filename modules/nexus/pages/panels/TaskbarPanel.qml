@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components.controls
 import qs.modules.nexus.common
 
@@ -43,7 +44,7 @@ PageBase {
         // Behaviour
         SectionHeader {
             first: true
-            text: qsTr("Behaviour")
+            text: Tr.tr("Behaviour")
         }
 
         ToggleRow {
@@ -109,7 +110,7 @@ PageBase {
 
         // Components
         SectionHeader {
-            text: qsTr("Components")
+            text: Tr.tr("Components")
         }
 
         NavRow {
@@ -179,28 +180,28 @@ PageBase {
 
         // Scroll actions
         SectionHeader {
-            text: qsTr("Scroll actions")
+            text: Tr.tr("Scroll actions")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Workspaces")
-            subtext: qsTr("Scroll over the workspace indicator to switch workspaces")
+            text: Tr.tr("Workspaces")
+            subtext: Tr.tr("Scroll over the workspace indicator to switch workspaces")
             checked: Config.bar.scrollActions.workspaces
             onToggled: GlobalConfig.bar.scrollActions.workspaces = checked
         }
 
         ToggleRow {
-            text: qsTr("Volume")
-            subtext: qsTr("Scroll on the top half of the bar to adjust volume")
+            text: Tr.tr("Volume")
+            subtext: Tr.tr("Scroll on the top half of the bar to adjust volume")
             checked: Config.bar.scrollActions.volume
             onToggled: GlobalConfig.bar.scrollActions.volume = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Brightness")
-            subtext: qsTr("Scroll on the bottom half of the bar to adjust brightness")
+            text: Tr.tr("Brightness")
+            subtext: Tr.tr("Scroll on the bottom half of the bar to adjust brightness")
             checked: Config.bar.scrollActions.brightness
             onToggled: GlobalConfig.bar.scrollActions.brightness = checked
         }

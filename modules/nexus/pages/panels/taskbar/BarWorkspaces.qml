@@ -2,12 +2,13 @@ pragma ComponentBehavior: Bound
 
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.modules.nexus.common
 
 PageBase {
     id: root
 
-    title: qsTr("Workspaces")
+    title: Tr.tr("Workspaces")
     isSubPage: true
 
     ColumnLayout {
@@ -78,7 +79,6 @@ PageBase {
         }
 
         ToggleRow {
-            Layout.fillWidth: true
             text: qsTr("Show windows")
             subtext: qsTr("Show icons of open windows on each workspace")
             configNode: root.targetConfig.bar.workspaces
@@ -91,6 +91,19 @@ PageBase {
         }
 
         ToggleRow {
+            text: qsTr("Show unoccupied")
+            subtext: qsTr("Show workspaces that are inactive and empty")
+            configNode: root.targetConfig.bar.workspaces
+            propertyName: "showUnoccupied"
+            checked: root.targetConfig.bar.workspaces.showUnoccupied
+            onToggled: {
+                root.targetConfig.bar.workspaces.showUnoccupied = checked;
+                root.targetConfig.save();
+            }
+        }
+
+        ToggleRow {
+            last: true
             text: qsTr("Windows on special workspaces")
             configNode: root.targetConfig.bar.workspaces
             propertyName: "showWindowsOnSpecialWorkspaces"
@@ -103,6 +116,7 @@ PageBase {
 
         StepperRow {
             label: qsTr("Max window icons")
+            subtext: qsTr("Maximum number of window icons shown per workspace")
             configNode: root.targetConfig.bar.workspaces
             propertyName: "maxWindowIcons"
             value: root.targetConfig.bar.workspaces.maxWindowIcons
@@ -111,19 +125,6 @@ PageBase {
             stepSize: 1
             onMoved: v => {
                 root.targetConfig.bar.workspaces.maxWindowIcons = v;
-                root.targetConfig.save();
-            }
-        }
-
-        ToggleRow {
-            last: true
-            text: qsTr("Per-monitor workspaces")
-            subtext: qsTr("Show each monitor's workspaces independently")
-            configNode: root.targetConfig.bar.workspaces
-            propertyName: "perMonitorWorkspaces"
-            checked: root.targetConfig.bar.workspaces.perMonitorWorkspaces
-            onToggled: {
-                root.targetConfig.bar.workspaces.perMonitorWorkspaces = checked;
                 root.targetConfig.save();
             }
         }

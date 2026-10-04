@@ -85,7 +85,10 @@ StyledRect {
                 return;
 
             const actions = (root.modelData?.actions ?? []);
-            if (actions.length === 1)
+            const defaultAction = actions.find(a => a.identifier === "default");
+            if (defaultAction)
+                defaultAction.invoke();
+            else if (actions.length === 1)
                 actions[0].invoke();
         }
 

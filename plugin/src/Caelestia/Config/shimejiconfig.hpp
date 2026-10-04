@@ -1,25 +1,23 @@
 #pragma once
 
-#include "configobject.hpp"
+#include "settings/objectnode.hpp"
+#include "common.hpp"
 
 #include <qstring.h>
 
 namespace caelestia::config {
 
-class ShimejiConfig : public ConfigObject {
-    Q_OBJECT
-    QML_ANONYMOUS
+class ShimejiConfig : public settings::ObjectNode {
+    CONFIG_NODE(ShimejiConfig, settings::ObjectNode)
 
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(bool, autoHide, true)
     CONFIG_PROPERTY(QString, path, QStringLiteral("root:/assets/shimeji/pusheen/"))
-    CONFIG_PROPERTY(QStringList, excludedScreens)
+    CONFIG_PROPERTY(QStringList, excludedScreens, {})
     CONFIG_PROPERTY(int, count, 1)
-    CONFIG_PROPERTY(QVariantMap, screenCounts)
-
-public:
-    explicit ShimejiConfig(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
+    // Size multiplier: 1.0 = the pack's native 128px
+    CONFIG_PROPERTY(qreal, scale, 1.0)
+    CONFIG_PROPERTY(QVariantMap, screenCounts, {})
 };
 
 } // namespace caelestia::config

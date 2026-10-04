@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Services.Pipewire
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.services
@@ -63,6 +64,7 @@ ColumnLayout {
 
                     required property PwNode modelData
 
+                    Layout.fillWidth: true
                     ButtonGroup.group: sinks
                     checked: Audio.sink?.id === modelData.id
                     onClicked: Audio.setAudioSink(modelData)
@@ -101,6 +103,7 @@ ColumnLayout {
 
                     required property PwNode modelData
 
+                    Layout.fillWidth: true
                     ButtonGroup.group: sources
                     checked: Audio.source?.id === modelData.id
                     onClicked: Audio.setAudioSource(modelData)
@@ -112,7 +115,7 @@ ColumnLayout {
 
     StyledText {
         Layout.topMargin: Tokens.spacing.medium
-        text: qsTr("Volume (%1)").arg(Audio.muted ? qsTr("Muted") : `${Math.round(Audio.volume * 100)}%`)
+        text: Audio.muted ? qsTr("Volume (Muted)") : qsTr("Volume (%1%)").arg(Math.round(Audio.volume * 100))
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
     }
 

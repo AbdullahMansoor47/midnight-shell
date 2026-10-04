@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import M3Shapes
 import qs.components
 import qs.components.controls
@@ -11,7 +12,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Dashboard")
+    title: Tr.tr("Dashboard")
     isSubPage: true
 
     readonly property list<MenuItem> dashboardShapeItems: [
@@ -125,7 +126,7 @@ PageBase {
         // General
         SectionHeader {
             first: true
-            text: qsTr("General")
+            text: Tr.tr("General")
         }
 
         ToggleRow {
@@ -198,9 +199,22 @@ PageBase {
             }
         }
 
+        ToggleRow {
+            last: true
+            text: qsTr("Show clock seconds")
+            subtext: qsTr("Display seconds for the clock in the main panel")
+            configNode: root.targetConfig.dashboard
+            propertyName: "showClockSeconds"
+            checked: root.targetConfig.dashboard.showClockSeconds
+            onToggled: {
+                root.targetConfig.dashboard.showClockSeconds = checked;
+                root.targetConfig.save();
+            }
+        }
+
         // Tabs
         SectionHeader {
-            text: qsTr("Tabs")
+            text: Tr.tr("Tabs")
         }
 
         ToggleRow {
@@ -364,7 +378,7 @@ PageBase {
 
         // Performance widgets
         SectionHeader {
-            text: qsTr("Performance widgets")
+            text: Tr.tr("Performance widgets")
         }
 
         ToggleRow {
@@ -437,7 +451,7 @@ PageBase {
 
         // Behaviour
         SectionHeader {
-            text: qsTr("Behaviour")
+            text: Tr.tr("Behaviour")
         }
 
         StepperRow {
